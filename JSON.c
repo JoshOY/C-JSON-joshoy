@@ -2,9 +2,9 @@
 #include <malloc.h>
 #include "JSON.h"
 
-/****************
-*     Create JSON    *
-*****************/
+/**************************
+*     Create JSON
+***************************/
 
 JSON *createJSON(void)
 {
