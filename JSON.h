@@ -6,13 +6,13 @@
 #ifndef JSON_H_INCLUDED
 #define JSON_H_INCLUDED
 
-const int JSON_FALSE = 0;
-const int JSON_TRUE = 1;
-const int JSON_NULL = 2;
-const int JSON_NUMBER = 3;
-const int JSON_STRING = 4;
-const int JSON_ARRAY = 5;
-const int JSON_OBJECT = 6;
+#define JSON_FALSE (0)
+#define JSON_TRUE (1)
+#define JSON_NULL (2)
+#define JSON_NUMBER (3)
+#define JSON_STRING (4)
+#define JSON_ARRAY (5)
+#define JSON_OBJECT (6)
 
 typedef int JSONType;
 
@@ -31,12 +31,18 @@ struct json_object_iter
 * The cJSON structure
 ********************************/
 typedef struct JSON {
-	JSONType type;					/* The type of the item, as above. */
+    JSONType type;					/* The type of the item, as above. */
 	char *valuestring;				/* The item's string, if type == JSON_STRING*/
 	int valueint;					/* The item's number, if type == JSON_TRUE || JSON_FALSE */
-	double valuedouble;				/* The item's number, if type == JSON_NUMBER */
-	struct JSON **valuearray;    	/* The item's child nodes, if type == JSON_ARRAY || JSON_OBJECT */
-	unsigned int arraylength;       /* array or object length */
+    double valuedouble;				/* The item's number, if type == JSON_NUMBER */
+
+    struct JSON **child;
+    unsigned int index;                     /* The item's index, if type == JSON_ARRAY */
+    char *key;                                      /* The item's key, if type == JSON_OBJECT */
+    struct JSON *next;
+    struct JSON *preview;
+    unsigned int childlength;
+    unsigned int childcapacity;
 } JSON;
 
 /*******************************
@@ -44,23 +50,23 @@ typedef struct JSON {
 ********************************/
 
 /*
-解析JSON字符串
+Parse JSON string
 @arguments
-	value: 需要解析为JSON的字符串
+	value: JSON string to parse
 */
 JSON* ParseJSON(const char* value);
 
 /*
-解析JSON文件
+Parse a JSON from a file
 @arguments
-	file_name: 需要解析的文件名，函数返回指向解析后的JSON的指针
+	file_name: Name of a JSON file.
 */
 JSON* ParseJSONFromFile(const char* file_name);
 
 /*
-将 JSON 无格式输出到屏幕
+Print JSON to terminal without format
 @arguments
-    item: item 指向需要输出的 JSON
+    item: The JSON to output
 */
 void PrintJSON(JSON* item);
 
@@ -154,6 +160,28 @@ Replace an item in JSON array.
 */
 void ReplaceItemInArray(JSON *array, int which, JSON *new_value);
 
+/*******************************
+* Remove/Delete functions
+********************************/
+/*
+Pop an element from a JSON array, not deleting it.
+@arguments
+    array: The JSON array executing this function
+    which: The index of element in array
+*/
+JSON *DetachItemFromArray(JSON *array, int which);
+
+
+/*
+
+*/
+
+/*
+Delete a JSON, including its sub-elements.
+@arguments
+    item: the JSON pointer to free
+*/
+void DeleteJSON(JSON* item);
 
 
 #ifdef __cplusplus
