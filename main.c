@@ -7,6 +7,8 @@
 
 int main(int argc, char* argv[])
 {
+    //DEBUG PART
+
     /*
     printf("Hello world!\n");
 
@@ -24,7 +26,11 @@ int main(int argc, char* argv[])
     DeleteJSON(root);
     */
 
-    char *p = HandleString("\"Hello world!\n\"");
-    printf("%s", p);
+    char *p = FormatString("\"\\tHello world!\\n\"");
+    printf("===%s===\n", p);
+    char *p2 = DeleteSpaces(p);
+    printf("===%s===\n", p2);
+    free(p);
+    free(p2);
     return 0;
 }
