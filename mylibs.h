@@ -1,32 +1,17 @@
 #ifndef MYLIBS_H_INCLUDED
 #define MYLIBS_H_INCLUDED
 
-/*C substring function: It returns a pointer to the substring */
-char *substring(char *string, int position, int length)
-{
-   char *pointer;
-   int c;
+#include <stdio.h>
+#include <string.h>
+#include <malloc.h>
 
-   pointer = malloc(length+1);
+typedef struct StrSlices {
+    char **slice;
+    unsigned int len;
+} StrSlices;
 
-   if (pointer == NULL)
-   {
-      printf("Unable to allocate memory.\n");
-      exit(EXIT_FAILURE);
-   }
-
-   for (c = 0 ; c < position -1 ; c++)
-      string++;
-
-   for (c = 0 ; c < length ; c++)
-   {
-      *(pointer+c) = *string;
-      string++;
-   }
-
-   *(pointer+c) = '\0';
-
-   return pointer;
-}
+char *GetSubString(char *string, int position, int length);
+StrSlices* GetArraySlices(const char* s);
+char* HandleString(char *value);
 
 #endif // MYLIBS_H_INCLUDED

@@ -3,6 +3,7 @@
 #include <malloc.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <memory.h>
 #include "JSON.h"
 #include "mylibs.h"
 
@@ -13,7 +14,9 @@
 JSON *ParseJSON(const char *value)
 {
     int len = strlen(value);
+    int index = 0;
     switch(value[0]) {
+    case '-':
     case '1':
     case '2':
     case '3':
@@ -26,10 +29,12 @@ JSON *ParseJSON(const char *value)
     case '0':
         //To number
         break;
+
     case '\"':
-    case '\'':
         // To string
+        return CreateString(HandleString(value));
         break;
+
     case '{':
         if(value[len - 1] == '}') {
             //TODO, to object

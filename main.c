@@ -1,3 +1,4 @@
+#include "mylibs.h"
 #include "JSON.h"
 #include <string.h>
 #include <malloc.h>
@@ -6,6 +7,7 @@
 
 int main(int argc, char* argv[])
 {
+    /*
     printf("Hello world!\n");
 
     JSON* root = CreateObject();
@@ -20,5 +22,9 @@ int main(int argc, char* argv[])
     AddItemToArray(var_v, CreateNumber(666));
     PrintJSON(root);
     DeleteJSON(root);
+    */
+
+    char *p = HandleString("\"Hello world!\n\"");
+    printf("%s", p);
     return 0;
 }
