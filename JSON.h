@@ -38,7 +38,7 @@ typedef struct JSON {
 
     struct JSON **child;
     unsigned int index;                     /* The item's index, if type == JSON_ARRAY */
-    char *key;                                      /* The item's key, if type == JSON_OBJECT */
+    char **keys;                                      /* The item's keys, if type == JSON_OBJECT */
     struct JSON *next;
     struct JSON *preview;
     unsigned int childlength;
@@ -48,6 +48,12 @@ typedef struct JSON {
 /*******************************
 * Parse & Print functions
 ********************************/
+
+/*
+Create a new JSON NOT INITIALIZED.
+DO NOT USE.
+*/
+JSON *_CreateJSON(void);
 
 /*
 Parse JSON string
@@ -111,6 +117,8 @@ JSON *CreateNumber(double num);
 
 /*
 Create a string JSON
+@arguments
+	str: initialize with string str.
 */
 JSON *CreateString(const char *str);
 
@@ -160,11 +168,21 @@ Replace an item in JSON array.
 */
 void ReplaceItemInArray(JSON *array, int which, JSON *new_value);
 
+/*
+Replace an item in JSON object.
+@arguments
+array: the object container
+key: key of the item to replace
+new_item: the new item
+*/
+void ReplaceItemInObject(JSON *object, const char *key, JSON *new_value);
+
+
 /*******************************
 * Remove/Delete functions
 ********************************/
 /*
-Pop an element from a JSON array, not deleting it.
+Pop and return an element from a JSON array, not deleting it.
 @arguments
     array: The JSON array executing this function
     which: The index of element in array
@@ -173,15 +191,80 @@ JSON *DetachItemFromArray(JSON *array, int which);
 
 
 /*
-
+Delete an item from a JSON array.
+@arguments
+	array: The JSON array executing this function
+	which: The index of element in array
 */
+void DeleteItemFromArray(JSON *array, int which);
+
+/*
+Pop and return an element from a JSON object, not deleting it.
+@arguments
+	object: The JSON object executing this function
+	which: The key of element in object
+*/
+JSON *DetachItemFromObject(JSON *object, const char *key);
+
+/*
+Delete an element in a JSON object.
+@arguments
+	object: The JSON object executing this function
+	which: The key of element in object
+*/
+void DeleteItemFromObject(JSON *object, const char *key);
 
 /*
 Delete a JSON, including its sub-elements.
 @arguments
     item: the JSON pointer to free
 */
-void DeleteJSON(JSON* item);
+void DeleteJSON(JSON *item);
+
+
+/*******************************
+* Duplicate functions
+********************************/
+
+/*
+Duplicate a JSON and return the new JSON pointer.
+@arguments
+	item: the JSON item to duplicate
+	recurse: 1 or 0 (true or false), representing deepcopy or not
+*/
+JSON *Duplicate(JSON *item, int recurse);
+
+
+
+/*******************************
+* Read functions
+********************************/
+
+/*
+Get an item in a JSON array. Return a pointer.
+(Return NULL if not found.)
+@arguments
+	array: JSON array
+	which: The index of item in the array
+*/
+JSON *GetItemInArray(JSON *array, int which);
+
+/*
+Get an item in a JSON object. Return a pointer.
+(Return NULL if not found.)
+@arguments
+	object: JSON object
+	key: The key of item in the object
+*/
+JSON *GetItemInObject(JSON *object, const char *key);
+
+/*
+Get the element in a JSON array or object with given relative path.
+@arguments
+	json: JSON array or object
+	path: Relative path of the item.
+*/
+JSON *GetItemInJSON(JSON *json, const char* path);
 
 
 #ifdef __cplusplus
