@@ -6,9 +6,10 @@
 #include <malloc.h>
 
 typedef struct StrSlices {
-    char **slice;
     unsigned int len;
     unsigned int capacity;
+    int type;
+	char **slice;
 } StrSlices;
 
 /*

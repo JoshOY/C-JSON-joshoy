@@ -1,5 +1,8 @@
 #include "mylibs.h"
 
+#define IS_ARRAY (0)
+#define IS_OBEJCT (1)
+
 /*C substring function: It returns a pointer to the substring */
 char *GetSubString(const char *str, int position, int length)
 {
@@ -7,11 +10,11 @@ char *GetSubString(const char *str, int position, int length)
    char *pointer;
    int c;
 
-   pointer = malloc(length+1);
+   pointer = malloc(length + 1);
 
    if (pointer == NULL)
    {
-      printf("Unable to allocate memory.\n");
+      //printf("Unable to allocate memory.\n");
       return NULL;
       //exit(EXIT_FAILURE);
    }
@@ -39,7 +42,7 @@ void PushString(StrSlices *ss, const char *str)
         ss->len += 1;
         ss->capacity = 1;
     } else if (ss->len == ss->capacity) {
-        ss->slice = realloc(ss->slice, 2 * ss->capacity * sizeof(char **));
+        ss->slice = (char **)realloc(ss->slice, 2 * ss->capacity * sizeof(char *));
         memset(&(ss[ss->len]), NULL, ss->capacity);
         ss->capacity <<= 1;
         ss->slice[ss->len] = (char *)malloc(sizeof(char) * (strlen(str) + 1) );
@@ -55,15 +58,16 @@ void PushString(StrSlices *ss, const char *str)
 
 void DeleteStrSlices(StrSlices *ss)
 {
+	
     int i;
     if(ss->len == 0) {
-        free(ss);
+		free(ss);
     } else {
-        for(i = 0; i < ss->len; i++) {
-            free(ss->slice[i]);
-        }
-        free(ss->slice);
-        free(ss);
+		for (i = 0; i < ss->len; i++) {
+			free(ss->slice[i]);
+		}
+		free(ss->slice);
+		ss->slice = NULL;
     }
     return;
 }
@@ -85,6 +89,11 @@ char *DeleteSpaces(const char* str)
         }
     }
     goOn = 1;
+    if(frontcounter == strlen(str)) {
+        char *p = (char *)malloc(sizeof(char) * 1);
+        p[0] = '\0';
+        return p;
+    }
     while(goOn) {
         switch (str[strlen(str) - 1 - backcounter]) {
         case ' ':
@@ -111,23 +120,119 @@ StrSlices *GetArraySlices(const char* s)
     StrSlices *rtn = (StrSlices *)malloc(sizeof(StrSlices));
     rtn->len = 0;
     rtn->capacity = 0;
+    rtn->type = IS_ARRAY;
 
     int length = strlen(s);
-    unsigned int elementNum = 0, i = 1, lastIndex = 1;
+    unsigned int elementNum = 0, i = 0, lastIndex = 1;
     int quoteStatus = 0;
-    char *newstr = NULL;
+    char *sslice = NULL;
 
-    for(i = 1; i < length - 1; i++) {
-        if(s[i] == '\"' && (i == 0 || s[i-1] != '\\')) {
+	while (s[i] == ' ' || s[i] == '\n' || s[i] == '\t'){
+		i++;
+	}
+	if (s[i] != '[') {
+		printf("Invalid Array!");
+		return NULL;
+	}
+	i += 1;
+	lastIndex = i;
+    for(; i < length; i++) {
+        if((!quoteStatus) && (s[i] == '[' || s[i] == '{')) {
+            char type = s[i];
+            int layerCounter = 1;
+			lastIndex = i;
+            while(layerCounter) {
+                ++i;
+                if(s[i] == '[' || s[i] == '{') {
+                    layerCounter += 1;
+                } else if(s[i] == '}' || s[i] == ']') {
+                    layerCounter -= 1;
+                    if(layerCounter == 0) {
+                        sslice = GetSubString(s, lastIndex, i - lastIndex + 1);
+                        PushString(rtn, sslice);
+                        free(sslice);
+                        lastIndex = i + 1;
+                    }
+                }
+            }
+            continue;
+        }
+
+        if(s[i] == '\"'  && s[i-1] != '\\') {
             quoteStatus = (!quoteStatus);
-        } else if((quoteStatus == 0) && (s[i] == ',')) {
-            newstr = GetSubString(s, lastIndex, i - lastIndex);
-            lastIndex = i;
-            PushString(rtn, newstr);
-            free(newstr);
+        } else if ((quoteStatus == 0) && (s[i] == ',' || s[i] == ']')) {
+            sslice = GetSubString(s, lastIndex, i - lastIndex);
+            lastIndex = i+1;
+            char *formatted = DeleteSpaces(sslice);
+            if(strlen(formatted) != 0)
+                PushString(rtn, formatted);
+            free(sslice);
+            free(formatted);
         }
     }
+
+    return rtn;
 }
+
+StrSlices *GetObjectSlices(const char *s)
+{
+    StrSlices *rtn = (StrSlices *)malloc(sizeof(StrSlices));
+    rtn->len = 0;
+    rtn->capacity = 0;
+    rtn->type = IS_OBEJCT;
+
+    int length = strlen(s);
+    unsigned int elementNum = 0, i = 0, lastIndex;
+    int quoteStatus = 0;
+    char *sslice = NULL;
+	
+	while (s[i] == ' ' || s[i] == '\n' || s[i] == '\t'){
+		i++;
+	}
+	if (s[i] != '{') {
+		printf("Invalid object!");
+		return NULL;
+	}
+	i += 1;
+	lastIndex = i;
+    for(; i < length; i++) {
+        if((!quoteStatus) && (rtn->len & 0x1) && (s[i] == '[' || s[i] == '{')) {
+            char type = s[i];
+            int layerCounter = 1;
+			lastIndex = i;
+            while(layerCounter) {
+                ++i;
+                if(s[i] == '[' || s[i] == '{') {
+                    layerCounter += 1;
+                } else if(s[i] == '}' || s[i] == ']') {
+                    layerCounter -= 1;
+                    if(layerCounter == 0) {
+                        sslice = GetSubString(s, lastIndex, i - lastIndex + 1);
+                        PushString(rtn, sslice);
+                        free(sslice);
+                        lastIndex = i + 1;
+                    }
+                }
+            }
+            continue;
+        }
+
+        if(s[i] == '\"'  && s[i-1] != '\\') {
+            quoteStatus = (!quoteStatus);
+        } else if ((quoteStatus == 0) && (s[i] == ',' || s[i] == ':' || s[i] == '}')) {
+            sslice = GetSubString(s, lastIndex, i - lastIndex);
+            lastIndex = i+1;
+            char *formatted = DeleteSpaces(sslice);
+            if(strlen(formatted) != 0)
+                PushString(rtn, formatted);
+            free(sslice);
+            sslice = NULL;
+        }
+    }
+
+    return rtn;
+}
+
 
 char* FormatString(char *value)
 {
