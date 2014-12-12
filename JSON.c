@@ -32,7 +32,7 @@ JSON *ParseJSON(const char *value)
 
     case '\"':
         // To string
-        return CreateString(HandleString(value));
+        return CreateString(FormatString(value));
         break;
 
     case '{':
@@ -50,8 +50,16 @@ JSON *ParseJSON(const char *value)
             printf("Exception: Invalid Syntax.");
             return NULL;
         }
+    case 'n':
+        // null?
+        break;
+    case 't':
+        //true?
+        break;
+    case 'f':
+        //false?
+        break;
     }
-
 }
 
 void PrintJSON(JSON* item)
