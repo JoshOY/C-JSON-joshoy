@@ -1,36 +1,20 @@
 #include "mylibs.h"
 
+#pragma warning(disable: 4996)
 #define IS_ARRAY (0)
 #define IS_OBEJCT (1)
 
 /*C substring function: It returns a pointer to the substring */
 char *GetSubString(const char *str, int position, int length)
 {
-   char *string = str;
-   char *pointer;
-   int c;
-
-   pointer = malloc(length + 1);
-
-   if (pointer == NULL)
-   {
-      //printf("Unable to allocate memory.\n");
-      return NULL;
-      //exit(EXIT_FAILURE);
-   }
-
-   for (c = 0 ; c < position ; c++)
-      string++;
-
-   for (c = 0 ; c < length ; c++)
-   {
-      *(pointer+c) = *string;
-      string++;
-   }
-
-   *(pointer+c) = '\0';
-
-   return pointer;
+	char *p = str + position;
+	char *rtn = (char *)malloc(sizeof(char) * (length + 1));
+	int i = 0;
+	for (i = 0; i < length; i++) {
+		rtn[i] = p[i];
+	}
+	rtn[length] = '\0';
+	return rtn;
 }
 
 void PushString(StrSlices *ss, const char *str)
@@ -72,7 +56,7 @@ void DeleteStrSlices(StrSlices *ss)
     return;
 }
 
-char *DeleteSpaces(const char* str)
+char *DeleteSpaces(const char *str)
 {
     int frontcounter = 0;
     int backcounter = 0;
@@ -114,8 +98,7 @@ char *DeleteSpaces(const char* str)
     }
 }
 
-
-StrSlices *GetArraySlices(const char* s)
+StrSlices *GetArraySlices(const char *s)
 {
     StrSlices *rtn = (StrSlices *)malloc(sizeof(StrSlices));
     rtn->len = 0;
@@ -131,7 +114,7 @@ StrSlices *GetArraySlices(const char* s)
 		i++;
 	}
 	if (s[i] != '[') {
-		printf("Invalid Array!");
+		printf("Exception: Invalid Array!");
 		return NULL;
 	}
 	i += 1;
@@ -166,8 +149,10 @@ StrSlices *GetArraySlices(const char* s)
             char *formatted = DeleteSpaces(sslice);
             if(strlen(formatted) != 0)
                 PushString(rtn, formatted);
-            free(sslice);
-            free(formatted);
+            //free(sslice);
+            //free(formatted);
+			sslice = NULL;
+			formatted = NULL;
         }
     }
 
@@ -190,7 +175,7 @@ StrSlices *GetObjectSlices(const char *s)
 		i++;
 	}
 	if (s[i] != '{') {
-		printf("Invalid object!");
+		printf("Exception: Invalid object!");
 		return NULL;
 	}
 	i += 1;
@@ -225,14 +210,15 @@ StrSlices *GetObjectSlices(const char *s)
             char *formatted = DeleteSpaces(sslice);
             if(strlen(formatted) != 0)
                 PushString(rtn, formatted);
-            free(sslice);
+            //free(sslice);
+			//free(formatted);
             sslice = NULL;
+			formatted = NULL;
         }
     }
 
     return rtn;
 }
-
 
 char* FormatString(char *value)
 {
@@ -240,8 +226,9 @@ char* FormatString(char *value)
     int index;
     int len = strlen(value);
     int realLength = 0;
-    char *newstr = (char *)malloc((len - 1) * sizeof(char));
-    memset(newstr, '\0', len);
+    char *newstr = (char *)malloc((len+1) * sizeof(char));
+    memset(newstr, '?', len);
+	newstr[len] = '\0';
     for(index = 1; index < len; index++) {
         switch(value[index]) {
         case '\\':
@@ -268,8 +255,14 @@ char* FormatString(char *value)
             break;
         }
     }
-    char *rtn = (char *)malloc(realLength * sizeof(char));
-    strcpy(rtn, newstr);
+    char *rtn = (char *)malloc((realLength + 1) * sizeof(char));
+	int i;
+	for (i = 0; i < realLength; ++i) {
+		rtn[i] = newstr[i];
+	}
+	rtn[realLength] = '\0';
     free(newstr);
+	newstr = NULL;
     return rtn;
 }
+

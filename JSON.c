@@ -13,9 +13,13 @@
 
 JSON *ParseJSON(const char *value)
 {
+	JSON *rtn = NULL;
+	StrSlices *ss = NULL;
     int len = strlen(value);
-    int index = 0;
-    switch(value[0]) {
+    int index = 0, first = 0;
+	while (value[first] == ' ' || value[first] == '\n' || value[first] == '\t')
+		first += 1;
+    switch(value[first]) {
     case '-':
     case '1':
     case '2':
@@ -28,6 +32,8 @@ JSON *ParseJSON(const char *value)
     case '9':
     case '0':
         //To number
+		//return CreateNumber(FormatNumber(value));
+		return NULL;
         break;
 
     case '\"':
@@ -36,28 +42,47 @@ JSON *ParseJSON(const char *value)
         break;
 
     case '{':
-        if(value[len - 1] == '}') {
-            //TODO, to object
-        } else {
-            printf("Exception: Invalid Syntax.");
-            return NULL;
-        }
+		rtn = CreateObject();
+		ss = GetObjectSlices(value);
+		for (index = 0; index < ss->len; index += 2) {
+			JSON* element = ParseJSON(ss->slice[index + 1]);
+			AddItemToObject(rtn, FormatString(ss->slice[index]), element);
+		}
+		return rtn;
         break;
     case '[':
-         if(value[len - 1] == ']') {
-            //TODO, to array
-        } else {
-            printf("Exception: Invalid Syntax.");
-            return NULL;
-        }
+		rtn = CreateArray();
+		ss = GetArraySlices(value);
+		for (index = 0; index < ss->len; index++) {
+			JSON* element = ParseJSON(ss->slice[index]);
+			AddItemToArray(rtn, element);
+		}
+		return rtn;
+		break;
     case 'n':
         // null?
-        break;
+		if (strcmp(GetSubString(value, first, 4), "null") == 0) {
+			return CreateNULL();
+		} else {
+			printf("Exception: Invalid Syntax \"%s\"", value);
+			return NULL;
+		}
     case 't':
-        //true?
+		// null?
+		if (strcmp(GetSubString(value, first, 4), "true") == 0) {
+			return CreateTrue();
+		} else {
+			printf("Exception: Invalid Syntax \"%s\"", value);
+			return NULL;
+		}
         break;
     case 'f':
-        //false?
+		if (strcmp(GetSubString(value, first, 5), "false") == 0) {
+			return CreateFalse();
+		} else {
+			printf("Exception: Invalid Syntax \"%s\"", value);
+			return NULL;
+		}
         break;
     }
 }
@@ -221,7 +246,7 @@ void AddItemToArray(JSON *array, JSON *item)
 
 void AddItemToObject(JSON* object, const char *key, JSON *value)
 {
-    if(GetItemInObject(object, key) != NULL) {
+    if(GetItemInObject(object, key) != NULL && object->childlength != 0) {
         printf("Exception: The key is already exist in the object.\n");
         return;
     }
@@ -381,13 +406,16 @@ JSON *GetItemInArray(JSON *array, int which)
 JSON *GetItemInObject(JSON *object, const char *key)
 {
     int index;
+	if (object->childlength == 0) {
+		return NULL;
+	}
     for(index = 0; index < object->childlength; index++) {
         if(strcmp(object->keys[index], key) == 0) {
-            break;
-            if(index == object->childlength - 1) {
-                return NULL;
-            }
+            break;         
         }
+		if (index == object->childlength - 1) {
+			return NULL;
+		}
     }
     return object->child[index];
 }

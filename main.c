@@ -33,16 +33,15 @@ int main(int argc, char* argv[])
     free(p);
     free(p2);
 	StrSlices *ss = (StrSlices *)malloc(sizeof(StrSlices));
-	free(ss);*/
+	free(ss);
+	*/
 
-	char *s = "  {  \"a\":2,   \"b\":\n3,\"c\" :[4,5,6 ],\n \"d\"  : {\"age\":20} }\n ";
-    StrSlices *ss = GetObjectSlices(s);
-    int i;
-    for(i = 0; i < ss->len; i++) {
-        printf("%s\n", ss->slice[i]);
-    }
-    printf("Length: %d\n", ss->len);
-    DeleteStrSlices(ss);
-	
+	char str[] = "[true,  false,   \"Hello!\", \"World!\", \"JoshOY.\",   \t \n{\"a\":\"test\", \"b\":\"test2\"}]";
+	char* s = (char *)malloc(sizeof(char) * (strlen(str) + 1) );
+	strcpy(s, str);
+	JSON* json = ParseJSON(s);
+	PrintJSON(json);
+	DeleteJSON(json);
+	free(s);
     return 0;
 }
