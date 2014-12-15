@@ -68,7 +68,7 @@ Reformat the value string. Handling slash situations.
 @arguments
     value: The target string
 */
-char *FormatString(char *value);
+char *FormatString(const char *value);
 
 /*
 Return a number format by a string

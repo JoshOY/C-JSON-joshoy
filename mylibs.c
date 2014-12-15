@@ -42,7 +42,7 @@ void PushString(StrSlices *ss, const char *str)
 
 void DeleteStrSlices(StrSlices *ss)
 {
-	
+
     int i;
     if(ss->len == 0) {
 		free(ss);
@@ -170,7 +170,7 @@ StrSlices *GetObjectSlices(const char *s)
     unsigned int elementNum = 0, i = 0, lastIndex;
     int quoteStatus = 0;
     char *sslice = NULL;
-	
+
 	while (s[i] == ' ' || s[i] == '\n' || s[i] == '\t'){
 		i++;
 	}
@@ -220,7 +220,7 @@ StrSlices *GetObjectSlices(const char *s)
     return rtn;
 }
 
-char* FormatString(char *value)
+char* FormatString(const char *value)
 {
     //According to ECMA 404
     int index;

@@ -20,13 +20,6 @@ typedef int JSONType;
 extern "C" {
 #endif
 
-struct json_object_iter
-{
-	char *key;
-	struct json_object *val;
-	struct lh_entry *entry;
-};
-
 /*******************************
 * The cJSON structure
 ********************************/
@@ -36,13 +29,13 @@ typedef struct JSON {
 	int valueint;					/* The item's number, if type == JSON_TRUE || JSON_FALSE */
     double valuedouble;				/* The item's number, if type == JSON_NUMBER */
 
-    struct JSON **child;
     unsigned int index;                     /* The item's index, if type == JSON_ARRAY */
-    char **keys;                                      /* The item's keys, if type == JSON_OBJECT */
+    char *key;                              /* The item's hey, if type == JSON_OBJECT */
+    struct JSON *childstart;
+    struct JSON *childend;
     struct JSON *next;
     struct JSON *preview;
     unsigned int childlength;
-    unsigned int childcapacity;
 } JSON;
 
 /*******************************
