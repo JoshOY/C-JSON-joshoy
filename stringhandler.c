@@ -6,9 +6,11 @@ char *GetSubString(const char *string, int position, int length)
     char *p = string + position;
 	char *rtn = (char *)malloc(sizeof(char) * (length + 1));
 	int i = 0;
+
 	for (i = 0; i < length; i++) {
 		rtn[i] = p[i];
 	}
+
 	rtn[length] = '\0';
 	return rtn;
 }
@@ -16,27 +18,29 @@ char *GetSubString(const char *string, int position, int length)
 StrSlice *CreateStrSlice()
 {
     StrSlice *rtn = (StrSlice *)malloc(sizeof(StrSlice));
-    rtn->str = NULL;
-    rtn->next = NULL;
+    rtn->str      = NULL;
+    rtn->next     = NULL;
     rtn->endslice = NULL;
-    rtn->length = 0;
+    rtn->length   = 0;
 
     return rtn;
 }
 
 void PushString(StrSlice *ss, const char *str)
 {
-    if(ss->length == 0) {
+    if (ss->length == 0) {
         ss->str = (char *)malloc(sizeof(char) * (strlen(str) + 1));
         strcpy(ss->str, str);
         ss->length = 1;
-    } else if (ss->length == 1) {
+    }
+    else if (ss->length == 1) {
         ss->next = CreateStrSlice();
         ss->endslice = ss->next;
         ss->next->str = (char *)malloc(sizeof(char) * (strlen(str) + 1));
         strcpy(ss->next->str, str);
         ss->length = 2;
-    } else {
+    }
+    else {
         StrSlice *p = CreateStrSlice();
         ss->endslice->next = p;
         ss->endslice = p;
@@ -60,11 +64,12 @@ void DeleteStrSlice(StrSlice *ss)
 char *DeleteSpaces(const char *str)
 {
     int frontcounter = 0;
-    int backcounter = 0;
-    int goOn = 1;
+    int backcounter  = 0;
+    int goOn         = 1;
+
     while(goOn) {
         switch (str[frontcounter]) {
-        case ' ':
+        case ' ' :
         case '\n':
         case '\t':
             ++frontcounter;
@@ -81,7 +86,7 @@ char *DeleteSpaces(const char *str)
     }
     while(goOn) {
         switch (str[strlen(str) - 1 - backcounter]) {
-        case ' ':
+        case ' ' :
         case '\n':
         case '\t':
             ++backcounter;
@@ -93,30 +98,33 @@ char *DeleteSpaces(const char *str)
     }
     if(frontcounter + backcounter == 0) {
         return GetSubString(str, 0, strlen(str));
-    } else {
+    }
+    else {
         return GetSubString(str, frontcounter, strlen(str) - frontcounter - backcounter);
     }
 }
 
 StrSlice *GetArraySlices(const char *s) {
-    StrSlice *rtn = CreateStrSlice();
-    int s_len = strlen(s);
-    unsigned int i = 0, lastIndex = 1;
-    int quoteStatus = 0;
-    char *sslice = NULL;
+    StrSlice     *rtn         = CreateStrSlice();
+    int           s_len       = strlen(s);
+    unsigned int  i           = 0;
+    unsigned int  lastIndex   = 1;
+    int           quoteStatus = 0;
+    char         *sslice      = NULL;
 
-    for(i = 1; i < s_len; ++i) {
-        if((!quoteStatus) && (s[i] == '[' || s[i] == '{')) {
+    for (i = 1; i < s_len; ++i) {
+        if ( (!quoteStatus) && (s[i] == '[' || s[i] == '{') ) {
             char type = s[i];
             int layerCounter = 1;
 			lastIndex = i;
-            while(layerCounter) {
-                ++i;
-                if(s[i] == '[' || s[i] == '{') {
+            while (layerCounter) {
+                i += 1;
+                if (s[i] == '[' || s[i] == '{') {
                     layerCounter += 1;
-                } else if(s[i] == '}' || s[i] == ']') {
+                }
+                else if (s[i] == '}' || s[i] == ']') {
                     layerCounter -= 1;
-                    if(layerCounter == 0) {
+                    if (layerCounter == 0) {
                         /*
                         if(type != s[i]) {
                             printf("Exception: Invalid syntax.\n");
@@ -134,14 +142,16 @@ StrSlice *GetArraySlices(const char *s) {
             continue;
         }
 
-        if(s[i] == '\"'  && s[i-1] != '\\') {
+        if (s[i] == '\"'  && s[i-1] != '\\') {
             quoteStatus = (!quoteStatus);
-        } else if ((quoteStatus == 0) && (s[i] == ',' || s[i] == ']')) {
+        }
+        else if ((quoteStatus == 0) && (s[i] == ',' || s[i] == ']')) {
             char *tmp = GetSubString(s, lastIndex, i - lastIndex);
             lastIndex = i+1;
-            sslice = DeleteSpaces(tmp);
-            if(strlen(sslice) != 0)
+            sslice    = DeleteSpaces(tmp);
+            if (strlen(sslice) != 0)
                 PushString(rtn, sslice);
+
             free(tmp);
             free(sslice);
 			sslice = NULL;
@@ -153,24 +163,26 @@ StrSlice *GetArraySlices(const char *s) {
 
 StrSlice *GetObjectSlices(const char *s)
 {
-    StrSlice *rtn = CreateStrSlice();
-    int s_len = strlen(s);
-    unsigned int i = 0, lastIndex = 1;
-    int quoteStatus = 0;
-    char *sslice = NULL;
-    int on_key_status = 1;  // Now reading a key?
+    StrSlice     *rtn           = CreateStrSlice();
+    int           s_len         = strlen(s);
+    unsigned int  i             = 0;
+    unsigned int  lastIndex     = 1;
+    int           quoteStatus   = 0;
+    char         *sslice        = NULL;
+    int           on_key_status = 1;  // Now reading a key?
 
     for(i = 1; i < s_len; ++i) {
 
-        if((!on_key_status) && (!quoteStatus) && (s[i] == '[' || s[i] == '{')) {
+        if ((!on_key_status) && (!quoteStatus) && (s[i] == '[' || s[i] == '{')) {
             char type = s[i];
             int layerCounter = 1;
 			lastIndex = i;
             while(layerCounter) {
                 ++i;
-                if(s[i] == '[' || s[i] == '{') {
+                if (s[i] == '[' || s[i] == '{') {
                     layerCounter += 1;
-                } else if(s[i] == '}' || s[i] == ']') {
+                }
+                else if (s[i] == '}' || s[i] == ']') {
                     layerCounter -= 1;
                     if(layerCounter == 0) {
                         /*
@@ -190,14 +202,16 @@ StrSlice *GetObjectSlices(const char *s)
             continue;
         }
 
-        if(s[i] == '\"'  && s[i-1] != '\\') {
+        if (s[i] == '\"'  && s[i-1] != '\\') {
             quoteStatus = (!quoteStatus);
-        } else if ((quoteStatus == 0) && (s[i] == ',' || s[i] == ':' || s[i] == '}')) {
+        }
+        else if ((quoteStatus == 0) && (s[i] == ',' || s[i] == ':' || s[i] == '}')) {
             char *tmp = GetSubString(s, lastIndex, i - lastIndex);
             lastIndex = i+1;
-            sslice = DeleteSpaces(tmp);
-            if(strlen(sslice) != 0)
+            sslice    = DeleteSpaces(tmp);
+            if (strlen(sslice) != 0)
                 PushString(rtn, sslice);
+
             free(tmp);
             free(sslice);
             sslice = NULL;
@@ -213,14 +227,18 @@ StrSlice *GetObjectSlices(const char *s)
 char* FormatString(const char *value)
 {
     //According to ECMA 404
-    int index;
-    int len = strlen(value);
-    int realLength = 0;
-    char *newstr = (char *)malloc((len+1) * sizeof(char));
+    int   i          = 0;
+    int   index      = 0;
+    int   len        = strlen(value);
+    int   realLength = 0;
+    char *newstr     = (char *)malloc((len+1) * sizeof(char));
+    char *rtn        = NULL;
+
     memset(newstr, '?', len);
-	newstr[len] = '\0';
-    for(index = 1; index < len; index++) {
-        switch(value[index]) {
+	newstr[len]      = '\0';
+
+    for (index = 1; index < len; index++) {
+        switch (value[index]) {
         case '\\':
             index += 1;
             switch(value[index]) {
@@ -232,8 +250,8 @@ char* FormatString(const char *value)
             case 'n':  newstr[realLength] = '\n'; break;
             case 'r':  newstr[realLength] = '\r'; break;
             case 't':  newstr[realLength] = '\t'; break;
-            //case 'u':  newstr[realLength] = '\u'; break;
-            default: printf("Warning: Invalid char \\%c ignored.\n", value[index]);
+          //case 'u':  newstr[realLength] = '\u'; break;
+            default:   printf("Warning: Invalid char \\%c ignored.\n", value[index]);
             }
             realLength += 1;
             break;
@@ -245,8 +263,9 @@ char* FormatString(const char *value)
             break;
         }
     }
-    char *rtn = (char *)malloc((realLength + 1) * sizeof(char));
-	int i;
+
+    rtn = (char *)malloc((realLength + 1) * sizeof(char));
+
 	for (i = 0; i < realLength; ++i) {
 		rtn[i] = newstr[i];
 	}

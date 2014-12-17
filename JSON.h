@@ -24,18 +24,18 @@ extern "C" {
 * The cJSON structure
 ********************************/
 typedef struct JSON {
-    JSONType type;					/* The type of the item, as above. */
-	char *valuestring;				/* The item's string, if type == JSON_STRING*/
-	int valueint;					/* The item's number, if type == JSON_TRUE || JSON_FALSE */
-    double valuedouble;				/* The item's number, if type == JSON_NUMBER */
+    JSONType        type;                    /* The type of the item, as above. */
+	char           *valuestring;             /* The item's string, if type == JSON_STRING*/
+	int             valueint;                /* The item's number, if type == JSON_TRUE || JSON_FALSE */
+    double          valuedouble;             /* The item's number, if type == JSON_NUMBER */
 
-    unsigned int index;                     /* The item's index, if type == JSON_ARRAY */
-    char *key;                              /* The item's hey, if type == JSON_OBJECT */
-    struct JSON *childstart;
-    struct JSON *childend;
-    struct JSON *next;
-    struct JSON *preview;
-    unsigned int childlength;
+    unsigned int    index;                   /* The item's index, if type == JSON_ARRAY */
+    char           *key;                     /* The item's key, if type == JSON_OBJECT */
+    struct JSON    *childstart;
+    struct JSON    *childend;
+    struct JSON    *next;
+    struct JSON    *preview;
+    unsigned int    childlength;
 } JSON;
 
 /*******************************

@@ -6,10 +6,10 @@ extern "C" {
 #endif
 
 typedef struct StrSlice {
-    char *str;
-    struct StrSlice *next;
-    struct StrSlice *endslice;
-    unsigned int length;
+    char              *str;
+    struct StrSlice   *next;
+    struct StrSlice   *endslice;
+    unsigned int       length;
 } StrSlice;
 
 /*
