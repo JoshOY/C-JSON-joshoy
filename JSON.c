@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <memory.h>
 #include "JSON.h"
-#include "mylibs.h"
+#include "stringhandler.h"
 
 /*******************************
 * Parse & Print functions
@@ -14,7 +14,8 @@
 JSON *ParseJSON(const char *value)
 {
 	JSON *rtn = NULL;
-	StrSlices *ss = NULL;
+	StrSlice *ss = NULL;
+	StrSlice *iter;
     int len = strlen(value);
     int index = 0, first = 0;
 	while (value[first] == ' ' || value[first] == '\n' || value[first] == '\t')
@@ -44,24 +45,26 @@ JSON *ParseJSON(const char *value)
     case '{':
 		rtn = CreateObject();
 		ss = GetObjectSlices(value);
-		for (index = 0; index < ss->len; index += 2) {
-			JSON* element = ParseJSON(ss->slice[index + 1]);
-			AddItemToObject(rtn, FormatString(ss->slice[index]), element);
-		}
+		iter = ss;
+        while(iter != NULL) {
+            AddItemToObject(rtn, FormatString(iter->str), ParseJSON(DeleteSpaces(iter->next->str)));
+            iter = iter->next->next;
+        }
 		return rtn;
         break;
     case '[':
 		rtn = CreateArray();
 		ss = GetArraySlices(value);
-		for (index = 0; index < ss->len; index++) {
-			JSON* element = ParseJSON(ss->slice[index]);
-			AddItemToArray(rtn, element);
-		}
+		iter = ss;
+        while(iter != NULL) {
+            AddItemToArray(rtn, ParseJSON(DeleteSpaces(iter->str)));
+            iter = iter->next;
+        }
 		return rtn;
 		break;
     case 'n':
         // null?
-		if (strcmp(GetSubString(value, first, 4), "null") == 0) {
+		if (strcmp(value, "null") == 0) {
 			return CreateNULL();
 		} else {
 			printf("Exception: Invalid Syntax \"%s\"", value);
@@ -69,7 +72,7 @@ JSON *ParseJSON(const char *value)
 		}
     case 't':
 		// null?
-		if (strcmp(GetSubString(value, first, 4), "true") == 0) {
+		if (strcmp(value, "true") == 0) {
 			return CreateTrue();
 		} else {
 			printf("Exception: Invalid Syntax \"%s\"", value);
@@ -77,7 +80,7 @@ JSON *ParseJSON(const char *value)
 		}
         break;
     case 'f':
-		if (strcmp(GetSubString(value, first, 5), "false") == 0) {
+		if (strcmp(value, "false") == 0) {
 			return CreateFalse();
 		} else {
 			printf("Exception: Invalid Syntax \"%s\"", value);
@@ -90,6 +93,7 @@ JSON *ParseJSON(const char *value)
 void PrintJSON(JSON* item)
 {
     int i;
+    JSON *iter;
     switch(item->type) {
     case JSON_NULL:
         printf("null");
@@ -108,12 +112,25 @@ void PrintJSON(JSON* item)
         break;
     case JSON_ARRAY:
         printf("[");
-
+        iter = item->childstart;
+        for(i = 0; i < item->childlength; ++i) {
+            PrintJSON(iter);
+            if(i != item->childlength - 1)
+                printf(",");
+            iter = iter->next;
+        }
         printf("]");
         break;
     case JSON_OBJECT:
         printf("{");
-
+        iter = item->childstart;
+        for(i = 0; i < item->childlength; ++i) {
+            printf("\"%s\":", iter->key);
+            PrintJSON(iter);
+            if(i != item->childlength - 1)
+                printf(",");
+            iter = iter->next;
+        }
         printf("}");
         break;
     }
@@ -135,7 +152,7 @@ JSON *_CreateJSON(void)
     json->preview = NULL;
     json->childlength = 0;
     json->index = 0;
-    json->keys = NULL;
+    json->key = NULL;
 
     return json;
 }
@@ -189,9 +206,9 @@ JSON *CreateString(const char* str)
 {
     JSON* rtn = _CreateJSON();
     rtn->type = JSON_STRING;
-    rtn->valuestring = strdup(str);
+    rtn->valuestring = (char *)malloc(sizeof(char) * (strlen(str) + 1));
     strcpy(rtn->valuestring, str);
-
+    rtn->valuestring[strlen(str)] = '\0';
     return rtn;
 }
 
@@ -224,13 +241,13 @@ void AddItemToArray(JSON *array, JSON *item)
     } else {
         array->childend->next = item;
         array->childend->next->preview = array->childend;
-        array->childend->next->next = NULL:
+        array->childend->next->next = NULL;
         array->childend = array->childend->next;
     }
     return;
 }
 
-void AddItemToObject(JSON* object, const char *key, JSON *value)
+void AddItemToObject(JSON* object, const char *key, JSON *item)
 {
     object->childlength += 1;
     if(object->childend == NULL) {
@@ -239,7 +256,7 @@ void AddItemToObject(JSON* object, const char *key, JSON *value)
     } else {
         object->childend->next = item;
         object->childend->next->preview = object->childend;
-        object->childend->next->next = NULL:
+        object->childend->next->next = NULL;
         object->childend = object->childend->next;
     }
 
@@ -265,7 +282,7 @@ void ReplaceItemInArray(JSON *array, int which, JSON *new_value)
     JSON *prev = iter->next;
     JSON *next = iter->preview;
     DeleteJSON(iter);
-    pre->next = new_value;
+    prev->next = new_value;
     next->preview = new_value;
     new_value->next = next;
     new_value->preview = prev;
@@ -280,7 +297,7 @@ void ReplaceItemInObject(JSON *object, const char *key, JSON *new_value)
             JSON *prev = iter->next;
             JSON *next = iter->preview;
             DeleteJSON(iter);
-            pre->next = new_value;
+            prev->next = new_value;
             next->preview = new_value;
             new_value->next = next;
             new_value->preview = prev;
@@ -394,6 +411,7 @@ void DeleteJSON(JSON* item)
     }
     if(item->childlength != 0) {
         JSON *iter = item->childstart;
+        JSON *next_iter;
         while(iter != NULL) {
             next_iter = iter->next;
             DeleteJSON(iter);
@@ -412,28 +430,32 @@ void DeleteJSON(JSON* item)
 
 JSON *GetItemInArray(JSON *array, int which)
 {
-    if((which >= array->childlength) || (which < 0)) {
+    if(which < 0 || which >= array->childlength) {
+        printf("Exception: index out of range.\n");
         return NULL;
-    } else {
-        return array->childstart[which];
     }
+    int counter;
+    JSON *iter = array->childstart;
+    for(counter = 0; counter < which; counter++) {
+        iter = iter->next;
+    }
+    return iter;
 }
 
 JSON *GetItemInObject(JSON *object, const char *key)
 {
-    int index;
-	if (object->childlength == 0) {
-		return NULL;
-	}
-    for(index = 0; index < object->childlength; index++) {
-        if(strcmp(object->keys[index], key) == 0) {
+    int counter = 0;
+    JSON *iter = object->childstart;
+    while(iter != NULL) {
+        if(strcmp(iter->key, key) == 0) {
             break;
         }
-		if (index == object->childlength - 1) {
-			return NULL;
-		}
+        iter = iter->next;
     }
-    return object->childstart[index];
+    if(iter == NULL) {
+        printf("Exception: key not found in the object.\n");
+    }
+    return iter;
 }
 
 JSON* GetItemInJSON(JSON *json, const char *path)

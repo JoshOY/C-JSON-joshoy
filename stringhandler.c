@@ -1,13 +1,9 @@
-#include "mylibs.h"
+#include "stringhandler.h"
+#define NULL (0)
 
-#pragma warning(disable: 4996)
-#define IS_ARRAY (0)
-#define IS_OBEJCT (1)
-
-/*C substring function: It returns a pointer to the substring */
-char *GetSubString(const char *str, int position, int length)
+char *GetSubString(const char *string, int position, int length)
 {
-	char *p = str + position;
+    char *p = string + position;
 	char *rtn = (char *)malloc(sizeof(char) * (length + 1));
 	int i = 0;
 	for (i = 0; i < length; i++) {
@@ -17,42 +13,47 @@ char *GetSubString(const char *str, int position, int length)
 	return rtn;
 }
 
-void PushString(StrSlices *ss, const char *str)
+StrSlice *CreateStrSlice()
 {
-    if(ss->len == 0) {
-        ss->slice = (char **)malloc(sizeof(char *) * 1);
-        ss->slice[0] = (char *)malloc(sizeof(char) * (strlen(str) + 1) );
-        strcpy(ss->slice[0], str);
-        ss->len += 1;
-        ss->capacity = 1;
-    } else if (ss->len == ss->capacity) {
-        ss->slice = (char **)realloc(ss->slice, 2 * ss->capacity * sizeof(char *));
-        memset(&(ss[ss->len]), NULL, ss->capacity);
-        ss->capacity <<= 1;
-        ss->slice[ss->len] = (char *)malloc(sizeof(char) * (strlen(str) + 1) );
-        strcpy(ss->slice[ss->len], str);
-        ss->len += 1;
-    } else {
-        ss->slice[ss->len] = (char *)malloc(sizeof(char) * (strlen(str) + 1) );
-        strcpy(ss->slice[ss->len], str);
-        ss->len += 1;
-    }
-    return;
+    StrSlice *rtn = (StrSlice *)malloc(sizeof(StrSlice));
+    rtn->str = NULL;
+    rtn->next = NULL;
+    rtn->endslice = NULL;
+    rtn->length = 0;
+
+    return rtn;
 }
 
-void DeleteStrSlices(StrSlices *ss)
+void PushString(StrSlice *ss, const char *str)
 {
-
-    int i;
-    if(ss->len == 0) {
-		free(ss);
+    if(ss->length == 0) {
+        ss->str = (char *)malloc(sizeof(char) * (strlen(str) + 1));
+        strcpy(ss->str, str);
+        ss->length = 1;
+    } else if (ss->length == 1) {
+        ss->next = CreateStrSlice();
+        ss->endslice = ss->next;
+        ss->next->str = (char *)malloc(sizeof(char) * (strlen(str) + 1));
+        strcpy(ss->next->str, str);
+        ss->length = 2;
     } else {
-		for (i = 0; i < ss->len; i++) {
-			free(ss->slice[i]);
-		}
-		free(ss->slice);
-		ss->slice = NULL;
+        StrSlice *p = CreateStrSlice();
+        ss->endslice->next = p;
+        ss->endslice = p;
+        p->str = (char *)malloc(sizeof(char) * (strlen(str) + 1));
+        strcpy(p->str, str);
+        ss->length += 1;
     }
+}
+
+void DeleteStrSlice(StrSlice *ss)
+{
+    if(ss->str != NULL)
+        free(ss->str);
+    if(ss->next != NULL) {
+        DeleteStrSlice(ss->next);
+    }
+    free(ss);
     return;
 }
 
@@ -90,36 +91,21 @@ char *DeleteSpaces(const char *str)
             break;
         }
     }
-    if(!(frontcounter + backcounter)) {  // both == 0
+    if(frontcounter + backcounter == 0) {
         return GetSubString(str, 0, strlen(str));
     } else {
-        char *p = GetSubString(str, frontcounter, strlen(str) - frontcounter - backcounter);
-        return p;
+        return GetSubString(str, frontcounter, strlen(str) - frontcounter - backcounter);
     }
 }
 
-StrSlices *GetArraySlices(const char *s)
-{
-    StrSlices *rtn = (StrSlices *)malloc(sizeof(StrSlices));
-    rtn->len = 0;
-    rtn->capacity = 0;
-    rtn->type = IS_ARRAY;
-
-    int length = strlen(s);
-    unsigned int elementNum = 0, i = 0, lastIndex = 1;
+StrSlice *GetArraySlices(const char *s) {
+    StrSlice *rtn = CreateStrSlice();
+    int s_len = strlen(s);
+    unsigned int i = 0, lastIndex = 1;
     int quoteStatus = 0;
     char *sslice = NULL;
 
-	while (s[i] == ' ' || s[i] == '\n' || s[i] == '\t'){
-		i++;
-	}
-	if (s[i] != '[') {
-		printf("Exception: Invalid Array!");
-		return NULL;
-	}
-	i += 1;
-	lastIndex = i;
-    for(; i < length; i++) {
+    for(i = 1; i < s_len; ++i) {
         if((!quoteStatus) && (s[i] == '[' || s[i] == '{')) {
             char type = s[i];
             int layerCounter = 1;
@@ -131,6 +117,13 @@ StrSlices *GetArraySlices(const char *s)
                 } else if(s[i] == '}' || s[i] == ']') {
                     layerCounter -= 1;
                     if(layerCounter == 0) {
+                        /*
+                        if(type != s[i]) {
+                            printf("Exception: Invalid syntax.\n");
+                            DeleteStrSlice(rtn);
+                            return NULL;
+                        }
+                        */
                         sslice = GetSubString(s, lastIndex, i - lastIndex + 1);
                         PushString(rtn, sslice);
                         free(sslice);
@@ -144,44 +137,32 @@ StrSlices *GetArraySlices(const char *s)
         if(s[i] == '\"'  && s[i-1] != '\\') {
             quoteStatus = (!quoteStatus);
         } else if ((quoteStatus == 0) && (s[i] == ',' || s[i] == ']')) {
-            sslice = GetSubString(s, lastIndex, i - lastIndex);
+            char *tmp = GetSubString(s, lastIndex, i - lastIndex);
             lastIndex = i+1;
-            char *formatted = DeleteSpaces(sslice);
-            if(strlen(formatted) != 0)
-                PushString(rtn, formatted);
-            //free(sslice);
-            //free(formatted);
+            sslice = DeleteSpaces(tmp);
+            if(strlen(sslice) != 0)
+                PushString(rtn, sslice);
+            free(tmp);
+            free(sslice);
 			sslice = NULL;
-			formatted = NULL;
         }
     }
 
     return rtn;
 }
 
-StrSlices *GetObjectSlices(const char *s)
+StrSlice *GetObjectSlices(const char *s)
 {
-    StrSlices *rtn = (StrSlices *)malloc(sizeof(StrSlices));
-    rtn->len = 0;
-    rtn->capacity = 0;
-    rtn->type = IS_OBEJCT;
-
-    int length = strlen(s);
-    unsigned int elementNum = 0, i = 0, lastIndex;
+    StrSlice *rtn = CreateStrSlice();
+    int s_len = strlen(s);
+    unsigned int i = 0, lastIndex = 1;
     int quoteStatus = 0;
     char *sslice = NULL;
+    int on_key_status = 1;  // Now reading a key?
 
-	while (s[i] == ' ' || s[i] == '\n' || s[i] == '\t'){
-		i++;
-	}
-	if (s[i] != '{') {
-		printf("Exception: Invalid object!");
-		return NULL;
-	}
-	i += 1;
-	lastIndex = i;
-    for(; i < length; i++) {
-        if((!quoteStatus) && (rtn->len & 0x1) && (s[i] == '[' || s[i] == '{')) {
+    for(i = 1; i < s_len; ++i) {
+
+        if((!on_key_status) && (!quoteStatus) && (s[i] == '[' || s[i] == '{')) {
             char type = s[i];
             int layerCounter = 1;
 			lastIndex = i;
@@ -192,6 +173,13 @@ StrSlices *GetObjectSlices(const char *s)
                 } else if(s[i] == '}' || s[i] == ']') {
                     layerCounter -= 1;
                     if(layerCounter == 0) {
+                        /*
+                        if(type != s[i]) {
+                            printf("Exception: Invalid syntax.\n");
+                            DeleteStrSlice(rtn);
+                            return NULL;
+                        }
+                        */
                         sslice = GetSubString(s, lastIndex, i - lastIndex + 1);
                         PushString(rtn, sslice);
                         free(sslice);
@@ -205,20 +193,22 @@ StrSlices *GetObjectSlices(const char *s)
         if(s[i] == '\"'  && s[i-1] != '\\') {
             quoteStatus = (!quoteStatus);
         } else if ((quoteStatus == 0) && (s[i] == ',' || s[i] == ':' || s[i] == '}')) {
-            sslice = GetSubString(s, lastIndex, i - lastIndex);
+            char *tmp = GetSubString(s, lastIndex, i - lastIndex);
             lastIndex = i+1;
-            char *formatted = DeleteSpaces(sslice);
-            if(strlen(formatted) != 0)
-                PushString(rtn, formatted);
-            //free(sslice);
-			//free(formatted);
+            sslice = DeleteSpaces(tmp);
+            if(strlen(sslice) != 0)
+                PushString(rtn, sslice);
+            free(tmp);
+            free(sslice);
             sslice = NULL;
-			formatted = NULL;
+            on_key_status = !on_key_status;
         }
+
     }
 
     return rtn;
 }
+
 
 char* FormatString(const char *value)
 {
@@ -265,4 +255,3 @@ char* FormatString(const char *value)
 	newstr = NULL;
     return rtn;
 }
-
