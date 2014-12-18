@@ -81,7 +81,7 @@ valid type: 1, 3.14, -4.5, 1.4e5, 1.4E-5, etc.
 @arguments
     numstr: The target string
 */
-double FormatNumber(char* numstr);
+double FormatNumber(const char* numstr);
 
 #ifdef __cplusplus
 }

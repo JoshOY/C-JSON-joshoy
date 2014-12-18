@@ -6,12 +6,12 @@
 #ifndef JSON_H_INCLUDED
 #define JSON_H_INCLUDED
 
-#define JSON_FALSE (0)
-#define JSON_TRUE (1)
-#define JSON_NULL (2)
+#define JSON_FALSE  (0)
+#define JSON_TRUE   (1)
+#define JSON_NULL   (2)
 #define JSON_NUMBER (3)
 #define JSON_STRING (4)
-#define JSON_ARRAY (5)
+#define JSON_ARRAY  (5)
 #define JSON_OBJECT (6)
 
 typedef int JSONType;
@@ -25,8 +25,8 @@ extern "C" {
 ********************************/
 typedef struct JSON {
     JSONType        type;                    /* The type of the item, as above. */
-	char           *valuestring;             /* The item's string, if type == JSON_STRING*/
-	int             valueint;                /* The item's number, if type == JSON_TRUE || JSON_FALSE */
+    char           *valuestring;             /* The item's string, if type == JSON_STRING*/
+    int             valueint;                /* The item's number, if type == JSON_TRUE || JSON_FALSE */
     double          valuedouble;             /* The item's number, if type == JSON_NUMBER */
 
     unsigned int    index;                   /* The item's index, if type == JSON_ARRAY */

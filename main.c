@@ -35,15 +35,17 @@ int main(int argc, char* argv[])
     AddItemToArray(var_v, CreateNumber(2333));
     AddItemToArray(var_v, CreateNumber(666));
     PrintJSON(root);
-    DeleteJSON(root);*/
+    DeleteJSON(root);
+    */
 
-    char str[] = "[  true,  \t\n false,\"Hello!\", \"World!\", \"JoshOY.\",   \t \n{\"a\"  : \"test\", \"b\":\"test2\"}]";
+    char str[] = "[  true,  \t\n false,\"Hello!\", \"World!\", \"JoshOY.\",   \t \n{\"a\"  : -123, \"b\": -45e-3  }]";
 	char* s = (char *)malloc(sizeof(char) * (strlen(str) + 1) );
 	strcpy(s, str);
 	JSON* json = ParseJSON(s);
 	PrintJSON(json);
 	DeleteJSON(json);
 	free(s);
+
 
     return 0;
 }

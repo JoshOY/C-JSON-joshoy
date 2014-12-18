@@ -1,4 +1,6 @@
 #include "stringhandler.h"
+#include <stdlib.h>
+#include <math.h>
 #define NULL (0)
 
 char *GetSubString(const char *string, int position, int length)
@@ -178,7 +180,7 @@ StrSlice *GetObjectSlices(const char *s)
             int layerCounter = 1;
 			lastIndex = i;
             while(layerCounter) {
-                ++i;
+                i += 1;
                 if (s[i] == '[' || s[i] == '{') {
                     layerCounter += 1;
                 }
@@ -235,7 +237,7 @@ char* FormatString(const char *value)
     char *rtn        = NULL;
 
     memset(newstr, '?', len);
-	newstr[len]      = '\0';
+	newstr[len] = '\0';
 
     for (index = 1; index < len; index++) {
         switch (value[index]) {
@@ -272,5 +274,56 @@ char* FormatString(const char *value)
 	rtn[realLength] = '\0';
     free(newstr);
 	newstr = NULL;
+    return rtn;
+}
+
+double _Power(double a, int n)
+{
+    int     i   = 0;
+    double  rtn = 1;
+
+    if (n >= 0) {
+        for (i = 0; i < n; i++) {
+            rtn *= a;
+        }
+    }
+    else {
+        for (i = 0; i > n; i--) {
+            rtn /= a;
+        }
+    }
+
+    return rtn;
+}
+
+
+double FormatNumber(const char *numstr)
+{
+    unsigned int  i               = 0;
+    unsigned int  s_len           = strlen(numstr);
+    unsigned int  num_len_counter = 0;
+    char         *num_part        = NULL;
+    char         *e_part          = NULL;
+    int           has_e           = 0;
+    double        rtn             = 0;
+
+    for (i = 0; i < s_len; ++i) {
+        if (numstr[i] == 'e' || numstr[i] == 'E') {
+            has_e = 1;
+            num_len_counter = i;
+            break;
+        }
+    }
+
+    if (has_e) {
+        num_part = GetSubString(numstr, 0, num_len_counter);
+        e_part = GetSubString(numstr, num_len_counter + 1, s_len - num_len_counter - 1);
+        rtn = atof(num_part) * _Power(10.0, atoi(e_part));
+        free(num_part);
+        free(e_part);
+    }
+    else {
+        rtn = atof(numstr);
+    }
     return rtn;
 }

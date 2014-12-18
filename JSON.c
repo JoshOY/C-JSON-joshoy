@@ -13,12 +13,12 @@
 
 JSON *ParseJSON(const char *value)
 {
-    JSON       *rtn   = NULL;
-    StrSlice   *ss    = NULL;
-    StrSlice   *iter  = NULL;
-    int         len   = strlen(value);
-    int         index = 0;
-
+    JSON       *rtn     = NULL;
+    StrSlice   *ss      = NULL;
+    StrSlice   *iter    = NULL;
+    int         len     = strlen(value);
+    int         index   = 0;
+    char       *str_num = NULL;
     switch(value[0]) {
     case '-':
     case '1':
@@ -32,8 +32,9 @@ JSON *ParseJSON(const char *value)
     case '9':
     case '0':
         //To number
-		//return CreateNumber(FormatNumber(value));
-		return NULL;
+        str_num = DeleteSpaces(value);
+		return CreateNumber(FormatNumber(str_num));
+		free(str_num);
         break;
 
     case '\"':
