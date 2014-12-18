@@ -279,8 +279,8 @@ char* FormatString(const char *value)
 
 double _Power(double a, int n)
 {
-    int     i   = 0;
-    double  rtn = 1;
+    int    i   = 0;
+    double rtn = 1;
 
     if (n >= 0) {
         for (i = 0; i < n; i++) {

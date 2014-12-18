@@ -136,6 +136,89 @@ void PrintJSON(JSON* item)
     }
 }
 
+void FprintTabs(FILE *f, unsigned int layer)
+{
+    unsigned int i;
+    for (i = 0; i < layer; ++i)
+        fprintf(f, "\t");
+    return;
+}
+
+// Before using this function, make sure that file is opened.
+void FprintJSONWithFormat(JSON *json, FILE *f, unsigned int layer, int is_in_object)
+{
+    JSON         *iter = NULL;
+    unsigned int  i    = 0;
+
+    switch(json->type) {
+        FprintTabs(f, layer);
+        case JSON_NULL:   if (!is_in_object) FprintTabs(f, layer);   fprintf(f, "null");                      break;
+        case JSON_TRUE:   if (!is_in_object) FprintTabs(f, layer);   fprintf(f, "true");                      break;
+        case JSON_FALSE:  if (!is_in_object) FprintTabs(f, layer);   fprintf(f, "false");                     break;
+        case JSON_NUMBER: if (!is_in_object) FprintTabs(f, layer);   fprintf(f, "%g", json->valuedouble);     break;
+        case JSON_STRING: if (!is_in_object) FprintTabs(f, layer);   fprintf(f, "\"%s\"", json->valuestring); break;
+
+        case JSON_ARRAY:
+            FprintTabs(f, layer);
+            fprintf(f, "[\n");
+            iter = json->childstart;
+            for (i = 0; i < json->childlength; ++i) {
+                FprintJSONWithFormat(iter, f, layer + 1, 0);
+                if (i != json->childlength - 1) {
+                    fprintf(f, ",\n");
+                }
+                else {
+                    fprintf(f, "\n");
+                }
+                iter = iter->next;
+            }
+            FprintTabs(f, layer);
+            fprintf(f, "]");
+            break;
+
+        case JSON_OBJECT:
+            FprintTabs(f, layer);
+            fprintf(f, "{\n");
+            iter = json->childstart;
+            for (i = 0; i < json->childlength; ++i) {
+                FprintTabs(f, layer + 1);
+                fprintf(f, "\"%s\": ", iter->key);
+                FprintJSONWithFormat(iter, f, layer + 1, 1);
+                if (i != json->childlength - 1) {
+                    fprintf(f, ",\n");
+                }
+                else {
+                    fprintf(f, "\n");
+                }
+                iter = iter->next;
+            }
+            FprintTabs(f, layer);
+            fprintf(f, "}");
+            break;
+    }
+
+    return;
+}
+
+void PrintJSONToFile(JSON *item, const char *file_name)
+{
+    FILE         *fp            = NULL;
+    unsigned int  layer_counter = 0;
+
+    fp = fopen(file_name, "wt");
+
+    // if failed to open a file
+    if (fp == NULL) {
+        printf("Exception: Unable to open file \"%s\".\n", file_name);
+        exit(1);
+    }
+
+    FprintJSONWithFormat(item, fp, 0, 0);
+    fclose(fp);
+
+    return;
+}
+
 /*******************************
 * Create functions
 ********************************/
