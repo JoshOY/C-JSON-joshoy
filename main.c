@@ -38,12 +38,21 @@ int main(int argc, char* argv[])
     DeleteJSON(root);
     */
 
-    char str[] = "[  true,  \t\n false,\"Hello!\", \"World!\", \"JoshOY.\",   \t \n{\"a\"  : -123, \"b\": -45e-3  }]";
+    char str[] = "{ \"school\": \"Tongji\", \"properties\" : { \"age\" : 18, \"courses\": [\"C language\" , \"C++ and Java\"] }  }";
 	char* s = (char *)malloc(sizeof(char) * (strlen(str) + 1) );
 	strcpy(s, str);
-	JSON* json = ParseJSON(s);
-	PrintJSON(json);
+
+	JSON *json = ParseJSON(s);
+	JSON *duplicate_json = Duplicate(json, 1);
+
+    PrintJSON(json);
+    printf("\n");
+    PrintJSON(duplicate_json);
+	PrintJSONToFile(duplicate_json, "/home/joshoy/main/test.json");
+
 	DeleteJSON(json);
+	DeleteJSON(duplicate_json);
+
 	free(s);
 
 

@@ -159,7 +159,8 @@ void FprintJSONWithFormat(JSON *json, FILE *f, unsigned int layer, int is_in_obj
         case JSON_STRING: if (!is_in_object) FprintTabs(f, layer);   fprintf(f, "\"%s\"", json->valuestring); break;
 
         case JSON_ARRAY:
-            FprintTabs(f, layer);
+            if (!is_in_object)
+                FprintTabs(f, layer);
             fprintf(f, "[\n");
             iter = json->childstart;
             for (i = 0; i < json->childlength; ++i) {
@@ -177,7 +178,8 @@ void FprintJSONWithFormat(JSON *json, FILE *f, unsigned int layer, int is_in_obj
             break;
 
         case JSON_OBJECT:
-            FprintTabs(f, layer);
+            if (!is_in_object)
+                FprintTabs(f, layer);
             fprintf(f, "{\n");
             iter = json->childstart;
             for (i = 0; i < json->childlength; ++i) {
@@ -524,6 +526,64 @@ void DeleteJSON(JSON* item)
     free(item);
     return;
 }
+
+
+/*******************************
+* Duplicate functions
+********************************/
+
+JSON *Duplicate(JSON *item, int recurse)
+{
+    JSON         *rtn  = NULL;
+    JSON         *iter = NULL;
+    unsigned int  i    = 0;
+
+    if (item == NULL) {
+        printf("Exception: Cannot duplicate a NULL JSON pointer.\n");
+        return rtn;
+    }
+    switch (item->type) {
+    case JSON_NULL:   rtn = CreateNULL();                    return rtn;
+    case JSON_FALSE:  rtn = CreateFalse();                   return rtn;
+    case JSON_TRUE:   rtn = CreateTrue();                    return rtn;
+    case JSON_NUMBER: rtn = CreateNumber(item->valuedouble); return rtn;
+    case JSON_STRING: rtn = CreateString(item->valuestring); return rtn;
+
+    case JSON_ARRAY:
+        rtn = CreateArray();
+        if (recurse == 1) {
+            iter = item->childstart;
+            for (i = 0; i < item->childlength; ++i) {
+                AddItemToArray(rtn, Duplicate(iter, 1));
+                iter = iter->next;
+            }
+        }
+        else {
+            rtn->childlength = item->childlength;
+            rtn->childstart = item->childstart;
+            rtn->childend = item->childend;
+        }
+        return rtn;
+
+    case JSON_OBJECT:
+        rtn = CreateObject();
+        if (recurse == 1) {
+            iter = item->childstart;
+            for (i = 0; i < item->childlength; ++i) {
+                AddItemToObject(rtn, iter->key, Duplicate(iter, 1));
+                iter = iter->next;
+            }
+        }
+        else {
+            rtn->childlength = item->childlength;
+            rtn->childstart = item->childstart;
+            rtn->childend = item->childend;
+        }
+        return rtn;
+    }
+
+}
+
 
 /*******************************
 * Read functions

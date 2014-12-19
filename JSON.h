@@ -147,7 +147,6 @@ Add an item to an JSON object
 */
 void AddItemToObject(JSON *object, const char *key, JSON *value);
 
-
 /*******************************
 * Update functions
 ********************************/
