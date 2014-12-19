@@ -21,9 +21,6 @@ int main(int argc, char* argv[])
 	StrSlices *ss = (StrSlices *)malloc(sizeof(StrSlices));
 	free(ss);
 
-
-
-
     JSON* root = CreateObject();
     JSON* var_a = CreateNumber(3.14);
     JSON* var_s = CreateString("JoshOY");

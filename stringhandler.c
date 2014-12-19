@@ -6,15 +6,15 @@
 char *GetSubString(const char *string, int position, int length)
 {
     char *p = string + position;
-	char *rtn = (char *)malloc(sizeof(char) * (length + 1));
-	int i = 0;
+    char *rtn = (char *)malloc(sizeof(char) * (length + 1));
+    int i = 0;
 
-	for (i = 0; i < length; i++) {
-		rtn[i] = p[i];
-	}
+    for (i = 0; i < length; i++) {
+        rtn[i] = p[i];
+    }
 
-	rtn[length] = '\0';
-	return rtn;
+    rtn[length] = '\0';
+    return rtn;
 }
 
 StrSlice *CreateStrSlice()
@@ -118,7 +118,7 @@ StrSlice *GetArraySlices(const char *s) {
         if ( (!quoteStatus) && (s[i] == '[' || s[i] == '{') ) {
             char type = s[i];
             int layerCounter = 1;
-			lastIndex = i;
+            lastIndex = i;
             while (layerCounter) {
                 i += 1;
                 if (s[i] == '[' || s[i] == '{') {
@@ -178,7 +178,7 @@ StrSlice *GetObjectSlices(const char *s)
         if ((!on_key_status) && (!quoteStatus) && (s[i] == '[' || s[i] == '{')) {
             char type = s[i];
             int layerCounter = 1;
-			lastIndex = i;
+            lastIndex = i;
             while(layerCounter) {
                 i += 1;
                 if (s[i] == '[' || s[i] == '{') {
@@ -211,9 +211,11 @@ StrSlice *GetObjectSlices(const char *s)
             char *tmp = GetSubString(s, lastIndex, i - lastIndex);
             lastIndex = i+1;
             sslice    = DeleteSpaces(tmp);
-            if (strlen(sslice) != 0)
+            if (strlen(sslice) != 0) {
+                if(on_key_status)
+                    sslice = FixQuote(sslice);
                 PushString(rtn, sslice);
-
+            }
             free(tmp);
             free(sslice);
             sslice = NULL;
@@ -326,4 +328,25 @@ double FormatNumber(const char *numstr)
         rtn = atof(numstr);
     }
     return rtn;
+}
+
+char *FixQuote(const char *s)
+{
+    if (s[0] == '\"') {
+        return s;
+    }
+    else {
+        int   len = strlen(s) + 2;
+        int   i   = 0;
+        char *p   = (char *)malloc(sizeof(char) * (len + 1));
+        
+        p[0] = '\"';
+        p[len - 1] = '\"';
+        p[len] = '\0';
+        for (i = 1; i < len; ++i) {
+            p[i] = s[i-1];
+        }
+        free(s);
+        return p;
+    }
 }

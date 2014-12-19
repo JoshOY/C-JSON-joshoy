@@ -81,7 +81,15 @@ valid type: 1, 3.14, -4.5, 1.4e5, 1.4E-5, etc.
 @arguments
     numstr: The target string
 */
-double FormatNumber(const char* numstr);
+double FormatNumber(const char *numstr);
+
+/*
+Add quotes to target string and returns a new pointer if needed.(for example, unix -> "unix")
+@arguments
+	s: Target string.
+*/
+char *FixQuote(const char *s);
+
 
 #ifdef __cplusplus
 }

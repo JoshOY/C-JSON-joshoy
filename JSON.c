@@ -99,7 +99,7 @@ JSON *ParseJSON(const char *value)
 
 void PrintJSON(JSON* item)
 {
-    int i;
+    int   i;
     JSON *iter;
 
     switch(item->type) {
