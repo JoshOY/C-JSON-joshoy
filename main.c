@@ -4,54 +4,81 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 int main(int argc, char* argv[])
 {
-    //DEBUG PART
+    int   ch;
+    int   index;
+    JSON *json = NULL;
+    FILE *fp   = NULL;
 
-    /*
-    printf("Hello world!\n");
+    opterr = 0;
+    if (argc == 1) {
+        printf("\n");
+        printf("JSON parser by JoshOY, 2014 All rights reserved.\n");
+        printf("Type C-JSON -h for more info.\n");
+        printf("\n");
+        return 0;
+    }
 
-    char *p = FormatString("\t\"Hello world!\"\n");
-    printf("===%s===\n", p);
-    char *p2 = DeleteSpaces(p);
-    printf("===%s===\n", p2);
-    free(p);
-    free(p2);
-	StrSlices *ss = (StrSlices *)malloc(sizeof(StrSlices));
-	free(ss);
+    while ((ch = getopt(argc, argv, "hp:r:w:")) != -1) {
+        switch (ch) {
+            case 'h':
+            printf("====================================================\n");
+            printf("* JSON parser by JoshOY, 2014 All rights reserved. *\n");
+            printf("====================================================\n");
+            printf("\n");
+            printf("Usage: C-JSON [-h] [-p <JSON string>] [-r <path>] [-w <path>] ");
+            printf("\n");
+            break;
 
-    JSON* root = CreateObject();
-    JSON* var_a = CreateNumber(3.14);
-    JSON* var_s = CreateString("JoshOY");
-    JSON* var_v = CreateArray();
+            case 'p':
+                if (json != NULL) {
+                    DeleteJSON(json);
+                }
+                printf("Parsing \"%s\"...", optarg);
+                json = ParseJSON(optarg);
+                if (json != NULL) {
+                    printf("\nParse JSON success.\n");
+                    PrintJSON(json);
+                }
+                else {
+                    exit(1);
+                }
+                break;
 
-    AddItemToObject(root, "a", var_a);
-    AddItemToObject(root, "name", var_s);
-    AddItemToObject(root, "info", var_v);
-    AddItemToArray(var_v, CreateNumber(2333));
-    AddItemToArray(var_v, CreateNumber(666));
-    PrintJSON(root);
-    DeleteJSON(root);
-    */
+            case 'r':
+                if (json != NULL) {
+                    DeleteJSON(json);
+                }
+                json = ParseJSONFromFile(optarg);
+                if (json != NULL) {
+                    printf("\nRead from file success.\n");
+                    PrintJSON(json);
+                }
+                else {
+                	exit(1);
+                }
+                break;
 
-    char str[] = "{ \"school\": \"Tongji\", \"properties\" : { \"age\" : 18, \"courses\": [\"C language\" , \"C++ and Java\"] }  }";
-	char* s = (char *)malloc(sizeof(char) * (strlen(str) + 1) );
-	strcpy(s, str);
+            case 'w':
+                if (json == NULL) {
+                    json = CreateNULL();
+                }
+                PrintJSONToFile(json, optarg);
+                printf("Successfully written to file \"%s\".\n", optarg);
+                DeleteJSON(json);
+                break;
 
-	JSON *json = ParseJSON(s);
-	JSON *duplicate_json = Duplicate(json, 1);
+            default:
+                printf("Unknown command.\n");
+        }
+    }
 
-    PrintJSON(json);
-    printf("\n");
-    PrintJSON(duplicate_json);
-	PrintJSONToFile(duplicate_json, "/home/joshoy/main/test.json");
-
-	DeleteJSON(json);
-	DeleteJSON(duplicate_json);
-
-	free(s);
-
+    if (json != NULL) {
+        DeleteJSON(json);
+    }
 
     return 0;
 }

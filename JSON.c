@@ -13,12 +13,13 @@
 
 JSON *ParseJSON(const char *value)
 {
-    JSON       *rtn     = NULL;
-    StrSlice   *ss      = NULL;
-    StrSlice   *iter    = NULL;
-    int         len     = strlen(value);
-    int         index   = 0;
-    char       *str_num = NULL;
+    JSON       *rtn               = NULL;
+    StrSlice   *ss                = NULL;
+    StrSlice   *iter              = NULL;
+    int         len               = strlen(value);
+    int         index             = 0;
+    char       *value_deletespace = DeleteSpaces(value);
+
     switch(value[0]) {
     case '-':
     case '1':
@@ -32,9 +33,8 @@ JSON *ParseJSON(const char *value)
     case '9':
     case '0':
         //To number
-        str_num = DeleteSpaces(value);
-		return CreateNumber(FormatNumber(str_num));
-		free(str_num);
+        return CreateNumber(FormatNumber(value_deletespace));
+        free(value_deletespace);
         break;
 
     case '\"':
@@ -43,56 +43,67 @@ JSON *ParseJSON(const char *value)
         break;
 
     case '{':
-		rtn  =  CreateObject();
-		ss   =  GetObjectSlices(value);
-		iter =  ss;
-
+        rtn  =  CreateObject();
+        ss   =  GetObjectSlices(value);
+        iter =  ss;
+        if (ss->length == 0) {
+            DeleteStrSlice(ss);
+            return rtn;
+        }
         while (iter != NULL) {
             AddItemToObject(rtn, FormatString(iter->str), ParseJSON(DeleteSpaces(iter->next->str)));
             iter = iter->next->next;
         }
-		return rtn;
+        DeleteStrSlice(ss);
+        return rtn;
         break;
 
     case '[':
-		rtn  =  CreateArray();
-		ss   =  GetArraySlices(value);
-		iter =  ss;
-
+        rtn  =  CreateArray();
+        ss   =  GetArraySlices(value);
+        iter =  ss;
+        if (ss->length == 0) {
+            DeleteStrSlice(ss);
+            return rtn;
+        }
         while (iter != NULL) {
             AddItemToArray(rtn, ParseJSON(DeleteSpaces(iter->str)));
             iter = iter->next;
         }
-		return rtn;
-		break;
+        DeleteStrSlice(ss);
+        return rtn;
+        break;
 
     case 'n':
-		if (strcmp(value, "null") == 0) {
-			return CreateNULL();
-		}
-		else {
-			printf("Exception: Invalid Syntax \"%s\"", value);
-			return NULL;
-		}
+        if (strcmp(value_deletespace, "null") == 0) {
+            free(value_deletespace);
+            return CreateNULL();
+        }
+        else {
+            printf("Exception: Invalid Syntax \"%s\"", value);
+            return NULL;
+        }
 
     case 't':
-		if (strcmp(value, "true") == 0) {
-			return CreateTrue();
-		}
-		else {
-			printf("Exception: Invalid Syntax \"%s\"", value);
-			return NULL;
-		}
+        if (strcmp(value_deletespace, "true") == 0) {
+            free(value_deletespace);
+            return CreateTrue();
+        }
+        else {
+            printf("Exception: Invalid Syntax \"%s\"", value);
+            return NULL;
+        }
         break;
 
     case 'f':
-		if (strcmp(value, "false") == 0) {
-			return CreateFalse();
-		}
-		else {
-			printf("Exception: Invalid Syntax \"%s\"", value);
-			return NULL;
-		}
+        if (strcmp(value_deletespace, "false") == 0) {
+            free(value_deletespace);
+            return CreateFalse();
+        }
+        else {
+            printf("Exception: Invalid Syntax \"%s\"", value);
+            return NULL;
+        }
         break;
     }
 }
@@ -167,6 +178,10 @@ JSON *ParseJSONFromFile(const char* file_name)
         printf("Exception: Reading error.\n");
         exit(3);
     }
+
+    char *tmp = DeleteSpaces(buffer);
+    free(buffer);
+    buffer = tmp;
 
     rtn = ParseJSON(buffer);
 

@@ -56,7 +56,7 @@ For example, "[3.14, "John Doe"]" will be return as following slices
 @argument
     s: String of JSON array.
 */
-StrSlice *GetArraySlices(const char* s);
+StrSlice *GetArraySlices(const char *s);
 
 /*
 Return a new StrSlices structure pointer, containing string slices of elements from a JSON object.
@@ -66,7 +66,7 @@ For example, "{\"name\":\"John Doe\", \"Age\":26, \"hobbies\":[\"soccer\", \"PC 
 @argument
     s: String of JSON array.
 */
-StrSlice *GetObjectSlices(const char* s);
+StrSlice *GetObjectSlices(const char *s);
 
 /*
 Reformat the value string. Handling slash situations.
@@ -86,7 +86,7 @@ double FormatNumber(const char *numstr);
 /*
 Add quotes to target string and returns a new pointer if needed.(for example, unix -> "unix")
 @arguments
-	s: Target string.
+    s: Target string.
 */
 char *FixQuote(const char *s);
 
