@@ -53,14 +53,14 @@ Parse JSON string
 @arguments
 	value: JSON string to parse
 */
-JSON* ParseJSON(const char* value);
+JSON *ParseJSON(const char* value);
 
 /*
 Parse a JSON from a file
 @arguments
 	file_name: Name of a JSON file.
 */
-JSON* ParseJSONFromFile(const char* file_name);
+JSON *ParseJSONFromFile(const char* file_name);
 
 /*
 Print JSON to terminal without format

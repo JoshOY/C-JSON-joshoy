@@ -136,6 +136,45 @@ void PrintJSON(JSON* item)
     }
 }
 
+JSON *ParseJSONFromFile(const char* file_name)
+{
+    FILE  *fp     = NULL;
+    char  *data   = NULL;
+    JSON  *rtn    = NULL;
+    long   l_size = 0;
+    char  *buffer = NULL;
+    size_t result = 0;
+
+    fp = fopen(file_name, "r");
+    if (fp == NULL) {
+        printf("Exception: Cannot open file \"%s\".\n", file_name);
+        exit(1);
+    }
+
+    /*Get the size of the file*/
+    fseek(fp, 0, SEEK_END);
+    l_size = ftell(fp);
+    rewind(fp);
+
+    buffer = (char *)malloc(sizeof(char) * l_size);
+    if (buffer == NULL) {
+        printf("Exception: Memory error.\n");
+        exit(2);
+    }
+
+    result = fread(buffer, 1, l_size, fp);
+    if (result != l_size) {
+        printf("Exception: Reading error.\n");
+        exit(3);
+    }
+
+    rtn = ParseJSON(buffer);
+
+    free(buffer);
+    fclose(fp);
+    return rtn;
+}
+
 void FprintTabs(FILE *f, unsigned int layer)
 {
     unsigned int i;
@@ -625,9 +664,45 @@ JSON *GetItemInObject(JSON *object, const char *key)
 JSON* GetItemInJSON(JSON *json, const char *path)
 {
     //TODO
-    JSON *ptr = json;
-    if(strcmp("/", path) == 0) {
-        return ptr;
+    JSON *rtn = NULL;
+    JSON *next_json = NULL;
+
+    if (path[0] != '/') {
+        printf("Exception: Invalid path format.\n");
+        return NULL;
     }
+    if (strcmp("/", path) == 0) {
+        return json;
+    }
+
+    char *sub_s = GetSubString(path, 1, strlen(path) - 1);
+    char *next_slash = strchr(sub_s, '/');
+    if (next_slash == NULL) {
+        switch (json->type) {
+            case JSON_ARRAY:  rtn = GetItemInArray(json, atoi(sub_s)); break;
+            case JSON_OBJECT: rtn = GetItemInObject(json, sub_s);      break;
+        }
+        free(sub_s);
+        return rtn;
+    }
+    else {
+        char *search_item_key = GetSubString(sub_s, 0, next_slash - sub_s);
+        char *search_item_path = GetSubString(next_slash, 0, strlen(next_slash));
+
+        switch (json->type) {
+        case JSON_ARRAY:
+            next_json = GetItemInArray(json, atoi(search_item_key));
+        case JSON_OBJECT:
+            next_json = GetItemInObject(json, search_item_key);
+        }
+
+        rtn = GetItemInJSON(next_json, search_item_path);
+        free(search_item_key);
+        free(search_item_path);
+        free(sub_s);
+
+        return rtn;
+    }
+
     return NULL;
 }
