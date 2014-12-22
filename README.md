@@ -1,17 +1,21 @@
-#C-JSON by JoshOY
-
+C-JSON by JoshOY
+============================
 ##What's this
-A light weight JSON parser, which is the course project of C programming, Tongji Univ.
-The library provides some interfaces for parsing JSON.
-I made some changes and it can format JSON with standard formation.
-for example, here's a JSON with terrible format:
+
+A light weight JSON parser, which is the course project of C programming, Tongji Univ.<br>
+The library provides some interfaces for parsing JSON.<br>
+I made some changes and it can format JSON with standard formation.<br>
+
+for example, here's a JSON with terrible format:<br>
 '''
 [1,    2, {
            "name" :    "JoshOY",
       major   :  "SE"
 }]
 '''
+
 And it can format into
+
 '''
 [
 	1,
