@@ -74,6 +74,7 @@ char *DeleteSpaces(const char *str)
         case ' ' :
         case '\n':
         case '\t':
+        case '\r':
             ++frontcounter;
             break;
         default:
