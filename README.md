@@ -9,7 +9,7 @@ The library provides some interfaces for parsing JSON.<br>
 I made some changes and it can format JSON with standard formation.<br>
 
 for example, here's a JSON with terrible format:<br>
-'''
+'''javascript
 [1,    2, {
            "name" :    "JoshOY",
       major   :  "SE"
@@ -18,7 +18,7 @@ for example, here's a JSON with terrible format:<br>
 
 And it can format into
 
-'''
+'''javascript
 [
 	1,
 	2,
