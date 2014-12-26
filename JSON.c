@@ -560,8 +560,10 @@ void DeleteJSON(JSON* item)
 {
     if (item == NULL)
         return;
-    if (item->type = JSON_STRING)
+    if (item->type == JSON_STRING) {
         free(item->valuestring);
+        item->valuestring = NULL;
+    }
     if (item->key != NULL) {
         free(item->key);
         item->key = NULL;
@@ -678,7 +680,6 @@ JSON *GetItemInObject(JSON *object, const char *key)
 
 JSON* GetItemInJSON(JSON *json, const char *path)
 {
-    //TODO
     JSON *rtn = NULL;
     JSON *next_json = NULL;
 
